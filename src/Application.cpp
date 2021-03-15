@@ -24,15 +24,24 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+// OpenGL Mathematics
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 /* ENDS LIBRARY DECLARATION */
 
+
+
+
+/* Window Dimensions */
+const GLint WIDTH = 800, HEIGHT = 600;
 
 
 /* MAIN FUNCTION */
 int main(void)
 {
+    /* Create a GLFWwindow object for GLFW's functions */
     GLFWwindow* window;
-
     /* Initialize GLFW library */
     if (!glfwInit())
         return -1;
@@ -40,9 +49,15 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Rendering a square", NULL, NULL);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    /* Create a windowed mode windowand its OpenGL context */
+    window = glfwCreateWindow(WIDTH, HEIGHT, "Report 3 OpenGL VACL 162328", nullptr, nullptr);
+    /*glfwGetFramebufferSize() gets the actual width
+      of the screen window itself, relative to the density of the screen*/
+    int screenWidth, screenHeight;
+    glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
+    /* Chechks if window was correctly created*/
     if (!window)
     {
         glfwTerminate();
@@ -52,24 +67,28 @@ int main(void)
     glfwMakeContextCurrent(window);
     /* glfwSwapInterval() synchronizes the animation */
     glfwSwapInterval(1);
+    /* Set GLEW to modern approach usage*/
+    glewExperimental = GL_TRUE;
     //glewInit();
     if (glewInit() != GLEW_OK)
         std::cout << "Error!" << std::endl;
+    /* Define viewpoint dimensions */
+    glViewport(0, 0, screenWidth, screenHeight);
 
     std::cout << glGetString(GL_VERSION) << std::endl;
     {
 
         /* Square positions along the texture positions to be mapped */
-        float positions[] = {
-            -0.5f, -0.5f, 0.0f, 0.0f,      // 0 the bottom left
-             0.5f, -0.5f, 1.0f, 0.0f,      // 1 the bottom right side
-             0.5f,  0.5f, 1.0f, 1.0f,      // 1 the top right
-            -0.5f,  0.5f, 0.0f, 1.0f,      // 2 the top left
+        GLfloat positions[] = {
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,      // 0 the bottom left
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,      // 1 the bottom right side
+             0.5f,  0.5f, 0.0f, 1.0f, 1.0f,      // 1 the top right
+            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f       // 2 the top left
         };
 
         unsigned int indices[] = {
-            0, 1, 2,
-            2, 3, 0
+            0, 1, 3,
+            1, 2, 3 
         };
 
         /* Defines how openGL is going to blend alpha */
@@ -77,11 +96,11 @@ int main(void)
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));  //src alpha = 0; dest = 1 - 0 = 0
 
         VertexArray va;
-        VertexBuffer vb(positions, 4 * 4 * sizeof(float)); // expand the buffer to 4 elements per vertex
+        VertexBuffer vb(positions, sizeof(positions)); // expand the buffer to 4 elements per vertex
 
         VertexBufferLayout layout;
-        layout.Push<float>(2);
-        layout.Push<float>(2);  // adding to more attributes
+        layout.Push<float>(3);  // Texture positions size
+        layout.Push<float>(2);  // Texture positions size
         va.AddBuffer(vb, layout);
 
         IndexBuffer ib(indices, 6);
@@ -113,6 +132,15 @@ int main(void)
 
             // use the shader and bind the buffer and ibo each time in case that the buffer change
             shader.Bind();   //GLCall(glUseProgram(shader));
+
+            /* Create transformations */
+            glm::mat4 transform;
+            transform = glm::rotate(transform, (GLfloat)glfwGetTime() * -1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+            /* Get matrix's uniform location and set matrix */
+            GLint transformLocation = glGetUniformLocation(shader.m_RendererID,"transform");
+            glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(transform));
+
+
             shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);   //GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
 
             renderer.Draw(va, ib, shader);

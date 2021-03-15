@@ -26,13 +26,13 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 	for (unsigned int i = 0; i < elements.size(); i++)
 	{
 		const auto& element = elements[i];
-		/*  glEnableVertexAttribArray() enables the 
-		    generic vertex attribute array specified by index [i] */
-		GLCall(glEnableVertexAttribArray(i));
 		/* glVertexAttribPointer() specifies the location and data format 
 		   of the array of generic vertex attributes at index [i] */
 		GLCall(glVertexAttribPointer(i, element.count, element.type, 
 			element.normalized, layout.GetStride(), (const void*)offset));
+		/*  glEnableVertexAttribArray() enables the
+		generic vertex attribute array specified by index [i] */
+		GLCall(glEnableVertexAttribArray(i));
 		offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
 	}
 }
