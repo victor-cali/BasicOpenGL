@@ -27,16 +27,17 @@ bool GLLogCall(const char* function, const char* file, int line) {
 void Renderer::Clear() const
 {
     /* glClear() clear buffers to preset values */
-    GLCall(glClear(GL_COLOR_BUFFER_BIT));
+    GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    //GLCall(glClear(GL_DEPTH_BUFFER_BIT));
 }
 
 /* Draw Call */
-void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const
+void Renderer::Draw(const VertexArray& va, const Shader& shader) const
 {
     shader.Bind();
     va.Bind();
-    ib.Bind();
     /* glDrawElements() render primitives from array data.
        It specifies multiple geometric primitives with very few subroutine calls. */
-    GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
+    va.Unbind();
 }

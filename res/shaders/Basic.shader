@@ -3,10 +3,10 @@
 layout(location = 0) in vec4 position;
 layout(location = 1) in vec2 texCoord;
 out vec2 v_TexCoord;
-uniform mat4 transform; 
+uniform mat4 transformations;
 void main()
 {
-   gl_Position = transform * position;
+   gl_Position = transformations * position;
    v_TexCoord = texCoord;
 };
 #shader fragment

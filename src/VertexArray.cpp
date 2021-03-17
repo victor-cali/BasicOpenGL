@@ -21,20 +21,28 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 {
 	Bind();  //bind the vertex array
 	vb.Bind();	//bind the vertex buffer
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	// texture coord attribute
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	/*
 	const auto& elements = layout.GetElements();
 	unsigned int offset = 0;
 	for (unsigned int i = 0; i < elements.size(); i++)
 	{
 		const auto& element = elements[i];
 		/* glVertexAttribPointer() specifies the location and data format 
-		   of the array of generic vertex attributes at index [i] */
+		   of the array of generic vertex attributes at index [i] 
 		GLCall(glVertexAttribPointer(i, element.count, element.type, 
 			element.normalized, layout.GetStride(), (const void*)offset));
 		/*  glEnableVertexAttribArray() enables the
-		generic vertex attribute array specified by index [i] */
+		generic vertex attribute array specified by index [i] 
 		GLCall(glEnableVertexAttribArray(i));
 		offset += element.count * VertexBufferElement::GetSizeOfType(element.type);
-	}
+	}*/
 }
 
 void VertexArray::Bind() const

@@ -31,8 +31,6 @@
 /* ENDS LIBRARY DECLARATION */
 
 
-
-
 /* Window Dimensions */
 const GLint WIDTH = 800, HEIGHT = 600;
 
@@ -74,22 +72,63 @@ int main(void)
         std::cout << "Error!" << std::endl;
     /* Define viewpoint dimensions */
     glViewport(0, 0, screenWidth, screenHeight);
+    /* Here glEnable() enables depth */
+    glEnable(GL_DEPTH_TEST);
 
     std::cout << glGetString(GL_VERSION) << std::endl;
     {
 
         /* Square positions along the texture positions to be mapped */
         GLfloat positions[] = {
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,      // 0 the bottom left
-             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,      // 1 the bottom right side
-             0.5f,  0.5f, 0.0f, 1.0f, 1.0f,      // 1 the top right
-            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f       // 2 the top left
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+             0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+             0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+             0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+             0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+             0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
         };
 
+        /*
         unsigned int indices[] = {
             0, 1, 3,
             1, 2, 3 
         };
+        */
 
         /* Defines how openGL is going to blend alpha */
         GLCall(glEnable(GL_BLEND));
@@ -103,26 +142,28 @@ int main(void)
         layout.Push<float>(2);  // Texture positions size
         va.AddBuffer(vb, layout);
 
-        IndexBuffer ib(indices, 6);
-
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
 
-        Texture texture("res/textures/gold.png");
-        texture.Bind();
-        shader.SetUniform1i("u_Texture", 0);  //the slot is 0
-
         va.Unbind();
         vb.Unbind();    //GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-        ib.Unbind();    //GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         shader.UnBind();  //GLCall(glUseProgram(0));
 
         Renderer renderer;
 
-        /* to create the animation that changes the color */
+        /* to create the animation of color change */
         float r = 0.0f;
-        float increment = 0.05f;
+        float incrementC = 0.03f;
+        /* to create the animation of horizontal movement */
+        float x = 0.0f;
+        float incrementX = 0.03f;
+        /* to create the animation of Scalement */
+        float s = 1.0f;
+        float incrementS = 0.03f;
+
+        glm::mat4 projection;
+        projection = glm::perspective(45.0f, (GLfloat)screenWidth / (GLfloat)screenHeight, 0.1f, 100.0f);;
 
         /* Loop until the user closes the window, to render continusely */
         while (!glfwWindowShouldClose(window))
@@ -130,30 +171,45 @@ int main(void)
             /* Render here */
             renderer.Clear();  //GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
+            /* Transformations */
+            glm::mat4 model;
+            glm::mat4 view;
+            glm::mat4 size;
+            model = glm::rotate(model, (GLfloat)glfwGetTime() * 1.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+            view = glm::translate(view, glm::vec3(x, 0.0f, -3.0f));
+            size = glm::scale(size, glm::vec3(s, s, s));
+            glm::mat4 transformations = projection * view * model* size;
+
             // use the shader and bind the buffer and ibo each time in case that the buffer change
             shader.Bind();   //GLCall(glUseProgram(shader));
-
-            /* Create transformations */
-            glm::mat4 transform;
-            transform = glm::rotate(transform, (GLfloat)glfwGetTime() * -1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-            /* Get matrix's uniform location and set matrix */
-            GLint transformLocation = glGetUniformLocation(shader.m_RendererID,"transform");
-            glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(transform));
-
-
             shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);   //GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
 
-            renderer.Draw(va, ib, shader);
+            shader.SetUniformMat4f("transformations", transformations);
 
-            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+            Texture texture("res/textures/rainbow.png");
+            texture.Bind();
+            shader.SetUniform1i("u_Texture", 0);  //the slot is 0
 
-            /* Part of the animation */
+            renderer.Draw(va, shader);
+
+            /* Color change animation */
             if (r > 1.0f)
-                increment = -0.05f;
+                incrementC = -0.05f;
             else if (r < 0.0f)
-                increment = 0.05f;
-
-            r += increment;
+                incrementC =  0.05f;
+            r += incrementC;
+            /* Horizontal movement animation */
+            if (x > 1.0f)
+                incrementX = -0.03f;
+            else if (x < -1.0f)
+                incrementX =  0.03f;
+            x += incrementX;
+            /* Horizontal movement animation */
+            if (s > 1.0f)
+                incrementS = -0.01f;
+            else if (s < 0.5f)
+                incrementS =  0.01f;
+            s += incrementS;
 
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
